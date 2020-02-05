@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<modification>
+  <name>Sort atribute</name>
+  <code>DKart Sort atribute</code>
+  <version>1.0</version>
+  <author>DKart</author>
+  <link>https://dkart.pro</link>
+  
+    <file path="admin/view/template/catalog/product_form.tpl">	
+    	<operation>
+    	<search><![CDATA[<td class="text-left"><?php echo $entry_text; ?></td>]]></search>
+    	<add position="after"><![CDATA[                      <td class="text-left"><?php echo $entry_sort_order; ?></td>]]></add>
+    	</operation>
+    	
+    	<operation>
+    	<search><![CDATA[                      <td class="text-left"><button type="button" onclick="$('#attribute-row<?php echo $attribute_row; ?>').remove();" data-toggle="tooltip" title="<?php echo $button_remove; ?>" class="btn btn-danger"><i class="fa fa-minus-circle"></i></button></td>
+]]></search>
+    	<add position="before"><![CDATA[                      <td class="text-left"><input type="text" name="product_attribute[<?php echo $attribute_row; ?>][sort_order]" value="<?php echo $product_attribute['sort_order']; ?>" placeholder="<?php echo $entry_sort_order; ?>" class="form-control" /></td>
+]]></add>
+    	</operation>
+    	<operation>
+    	<search><![CDATA[	html += '  <td class="text-left"><button type="button" onclick="$(\'#attribute-row' + attribute_row + '\').remove();" data-toggle="tooltip" title="<?php echo $button_remove; ?>" class="btn btn-danger"><i class="fa fa-minus-circle"></i></button></td>';]]></search>
+    	<add position="before"><![CDATA[    html += '  <td class="text-left"><input type="text" name="product_attribute[' + attribute_row + '][sort_order]" value="" placeholder="<?php echo $entry_sort_order; ?>" class="form-control" /></td>';]]></add>
+    	</operation>
+    </file>
+
+    <file path="admin/model/catalog/product.php">
+    	<operation>
+    		<search><![CDATA[, text = '" .  $this->db->escape($product_attribute_description['text']) . "'");]]></search>
+    		<add position="replace"><![CDATA[, text = '" .  $this->db->escape($product_attribute_description['text']) . "', sort_order = '" .  (int)$product_attribute['sort_order'] . "'");]]></add>
+    	</operation>
+    	
+    	<operation>
+    		<search><![CDATA[	public function getProductAttributes($product_id) {]]></search>
+    		<add position="after"><![CDATA[
+            $column = $this->db->query("SELECT * from " . DB_PREFIX . "product_attribute  LIMIT 1");
+    
+            if (!isset($column->row['sort_order'])){
+                $this->db->query("ALTER TABLE " . DB_PREFIX . "product_attribute ADD `sort_order` INT NOT NULL AFTER `text`;");
+            }
+    		]]></add>
+    	</operation>
+    	
+    	<operation>
+    		<search><![CDATA[$product_attribute_description_data[$product_attribute_description['language_id']] = array('text' => $product_attribute_description['text']);]]></search>
+    		<add position="after"><![CDATA[				$sort_order = $product_attribute_description['sort_order'];]]></add>
+    	</operation>
+    	
+    	<operation>
+    		<search><![CDATA['product_attribute_description' => $product_attribute_description_data]]></search>
+    		<add position="replace"><![CDATA['product_attribute_description' => $product_attribute_description_data,
+                'sort_order'                    => $sort_order]]></add>
+    	</operation>
+    </file>
+
+    <file path="admin/controller/catalog/product.php">
+    	<operation>
+    		<search><![CDATA['product_attribute_description' => $product_attribute['product_attribute_description']]]></search>
+    		<add position="before"><![CDATA[                    'sort_order'                    => $product_attribute['sort_order'],]]></add>
+    	</operation>
+    	
+    </file>
+    
+    <file path="catalog/model/catalog/product.php">
+    	<operation>
+    		<search><![CDATA[ORDER BY a.sort_order, ad.name"]]></search>
+    		<add position="replace"><![CDATA[ORDER BY pa.sort_order, ad.name"]]></add>
+    	</operation>
+    </file>
+    	
+    
+</modification>
